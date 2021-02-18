@@ -10,6 +10,7 @@ import os
 import re
 import sys
 
+logging.basicConfig(level=logging.INFO)
 
 MESSAGE_START = b'([0-9A-F]{4}\s[0-9A-F]{4}\s[0-9A-F]{16}\s{2}TSMS)'
 REGEX_LEN = 5 + 5 + 18 + 4 - 1
@@ -74,18 +75,21 @@ def split_bytes(fname, prefix, size, compression):
     i = 1
     start_t = ''
     end_t = ''
+
+    # files from indra start with a header so strip it off
+    end_of_last_msg, residual = split_at_message(file_buf)
+    start_t = get_msg_time(residual)
+    if end_of_last_msg:
+        logging.info('Message header found and discarded:\n' + end_of_last_msg)
+
     # open the file, read a chuck of size bytes.
     # into a new file
+    print('Part written: ', end='')
     while True:
         temp_file = 'temp_part_%s.gz' % str(i).zfill(5)
         f = gzip.open(temp_file, 'wb', compression)
         chunk = file_buf.read(size)
-        if residual:
-            f.write(residual)
-        else:
-            # if no residual then there will be no start time from it
-            # so get it from the first message in the chunk
-            start_t = get_msg_time(chunk)
+        f.write(residual)
         f.write(chunk)
 
         end_of_last_msg, residual = split_at_message(file_buf)
