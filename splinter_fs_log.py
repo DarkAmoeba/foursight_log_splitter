@@ -62,7 +62,7 @@ def get_msg_time(byte_string):
     return datetime.utcfromtimestamp(Wallclock_Time).strftime('%Y%m%d-%H%M%S')
 
 
-def split_bytes(fname, prefix, size, compression):
+def split_bytes(fname, prefix, size, compression, quiet):
     """
     Open an input stream and read a fixed amount of data (size)
     into a new temporary file.
@@ -85,7 +85,8 @@ def split_bytes(fname, prefix, size, compression):
 
     # open the file, read a chuck of size bytes.
     # into a new file
-    print('Part written: ', end='')
+    if not quiet:
+        print('Part written: ', end='')
     while True:
         temp_file = 'temp_part_%s.gz' % str(i).zfill(5)
         f = gzip.open(temp_file, 'wb', compression)
@@ -98,7 +99,8 @@ def split_bytes(fname, prefix, size, compression):
         f.write(end_of_last_msg)
         f.close()
         os.rename(temp_file, '_'.join([prefix, start_t, end_t, '.gz']))
-        print(i)
+        if not quiet:
+            print(i)
 
         start_t = end_t
         if residual is None:
@@ -113,6 +115,7 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--prefix', type=str, default='FOURSIGHT', help='the prefix to use on the output file ')
     parser.add_argument('-m', '--megabytes', type=int, default=50, help='the chucksize in megabytes')
     parser.add_argument('-c', '--compression', type=int, default=5, help='compression for gzip 1 fastest to 9 slowest (most compression)')
+    parser.add_argument('-q', '--quiet', action='store_true', help='compression for gzip 1 fastest to 9 slowest (most compression)')
     args = parser.parse_args()
 
-    split_bytes(args.file, args.prefix, args.megabytes * 1024 * 1024, args.compression)
+    split_bytes(args.file, args.prefix, args.megabytes * 1024 * 1024, args.compression, args.quiet)
