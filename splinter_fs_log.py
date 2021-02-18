@@ -6,6 +6,7 @@ from __future__ import print_function
 from datetime import datetime
 import argparse
 import gzip
+import logging
 import os
 import re
 import sys
@@ -97,6 +98,7 @@ def split_bytes(fname, prefix, size, compression):
         f.write(end_of_last_msg)
         f.close()
         os.rename(temp_file, '_'.join([prefix, start_t, end_t, '.gz']))
+        print(i)
 
         start_t = end_t
         if residual is None:
